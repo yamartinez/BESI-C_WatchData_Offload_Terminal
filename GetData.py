@@ -33,12 +33,8 @@ def pullData():
     with subprocess.Popen([platform_tools,'devices'], stdout=subprocess.PIPE) as process:
         output = str(process.stdout.read())
         if device_1_id in output:
-            print('Device is Present...')
-            if device_1_connected:
-                print('Device was already Polled')
-                pass
-            else:
-                print('Gathering Device Data...')
+            if not device_1_connected:
+                print('Device Connected\nGathering Device Data...')
                 storeData()
                 device_1_connected = True
         else:
