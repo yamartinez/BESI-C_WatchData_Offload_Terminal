@@ -42,7 +42,7 @@ def pullData():
                 datapath = storeData()
                 device_1_connected = True
 
-                if os.path.isdir(datapath+'\\data'):
+                if os.path.isdir(datapath+data_path.split('/')[-2]):
                     data_saved = True
                     print('Data saved to: ' + datapath)
                 else:
