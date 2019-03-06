@@ -28,11 +28,12 @@ def storeData(device_id):
     timestamp = str(datetime.datetime.now()).replace(' ','_').replace(':','-').replace('.','-')
     this_save_path = save_path+'/'+device_id+'/'+timestamp+'/'
     os.makedirs(this_save_path)
-    process = subprocess.Popen([platform_tools,'-s',device_id,'pull',data_path,this_save_path], stdout=subprocess.PIPE)
-    
+    process = subprocess.Popen([platform_tools,'-s',device_id,'pull',data_path,this_save_path], stdout=subprocess.PIPE,shell=True)
+    output =''
     while process.poll() == None:
+        output+=str(process.stdout.read())
         pass
-    output = str(process.stdout.read())
+    
     if ('0 files pulled' in output):
         print("Data Acquisition Failed...")
         return False
