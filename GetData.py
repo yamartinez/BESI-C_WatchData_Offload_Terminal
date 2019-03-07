@@ -12,15 +12,18 @@ platform_tools = variables[0][1]
 data_path = variables[1][1]
 save_path = variables[2][1]
 backup_path = variables[3][1]
-device_1_id = variables[4][1]
+device_1_id = variables[4][1].split(',')
 # ----------------------
 
 
-device_1_connected = False
-data_saved = False
+device_1_connected = []
+data_saved = []
+
 
 def init():
-
+    for i in range(len(device_1_id)):
+        device_1_connected.append(False)
+        data_saved.append(False)
     return
 
 def storeData(device_id):
@@ -41,14 +44,13 @@ def storeData(device_id):
         print("Failed")
         return False
     else:
-        dataBackup(timestamp)
+        dataBackup(timestamp,device_id)
         return this_save_path
 
-def dataBackup(timestamp):
-    global backup_path
-    backup_path = backup_path +timestamp+'/'
-    process = subprocess.Popen([platform_tools,'-s',device_1_id,'shell','mkdir',backup_path], stdout=subprocess.PIPE)
-    process = subprocess.Popen([platform_tools,'-s',device_1_id,'shell','mv',data_path+'*', backup_path], stdout=subprocess.PIPE)
+def dataBackup(timestamp,device_id):
+    this_backup_path = backup_path +timestamp+'/'
+    process = subprocess.Popen([platform_tools,'-s',device_id,'shell','mkdir',this_backup_path], stdout=subprocess.PIPE)
+    process = subprocess.Popen([platform_tools,'-s',device_id,'shell','mv',data_path+'*', backup_path], stdout=subprocess.PIPE)
     while process.poll() == None:
         pass
     return
@@ -58,24 +60,24 @@ def pullData():
     """Checks if device is connected and if it is and has not been downloaded and takes appropriate action"""
     global device_1_connected,data_saved
 
-    
-    with subprocess.Popen([platform_tools,'devices'], stdout=subprocess.PIPE) as process:
-        output = str(process.stdout.read())
-       
-        if device_1_id in output:
-            if (not device_1_connected) or (data_saved == False):
-                print('Device Connected\nGathering Device Data...')
-                datapath = storeData(device_1_id)
-                device_1_connected = True
-
-                if datapath:
-                    data_saved = True
-                    print('Data saved to: ' + datapath)
-                else:
-                    data_saved = False
-
-        else:
-            device_1_connected = False
-            data_saved = False
+    for i in range(len(device_1_id)):
+        with subprocess.Popen([platform_tools,'devices'], stdout=subprocess.PIPE) as process:
+            output = str(process.stdout.read())
         
-        process.kill()
+            if device_1_id[i] in output:
+                if (not device_1_connected[i]) or (data_saved[i] == False):
+                    print('Device Connected\nGathering Device Data...')
+                    datapath = storeData(device_1_id[i])
+                    device_1_connected[i] = True
+
+                    if datapath:
+                        data_saved[i] = True
+                        print('Data saved to: ' + datapath)
+                    else:
+                        data_saved[i] = False
+
+            else:
+                device_1_connected[i] = False
+                data_saved[i] = False
+            
+            process.kill()
