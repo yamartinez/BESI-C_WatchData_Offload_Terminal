@@ -2,6 +2,21 @@ import os
 import subprocess
 import datetime
 
+
+"""
+Created by Yudel Martinez 2019 for Univeristy of Virginia School of Engineering and Applied Sciences
+--------------------------------------------------------------------------------------------------------------------------
+GetData is a python program that is used to get data form an ADB device to a specified folder accecible from the host system
+This project requires that Google ADB Tools be installed or that Platform-tools has been downloaded, as that directory is used
+to generate ADB commands.
+
+How to use:
+    1.Make config file
+    2.Call GetData.init()
+    3.Call GetData.pullData() on demand or in an always running while loop to have automatic download of data as soon as device 
+    is plugged in
+"""
+
 # --- Initialization ---
 variables = open('config').read().strip().replace('"','').split('\n')
 for i in range(len(variables)):
@@ -12,17 +27,18 @@ platform_tools = variables[0][1]
 data_path = variables[1][1]
 save_path = variables[2][1]
 backup_path = variables[3][1]
-device_1_id = variables[4][1].split(',')
+device_ids = variables[4][1].split(',')
 # ----------------------
 
 
-device_1_connected = []
+devices_connected = []
 data_saved = []
 
 
 def init():
-    for i in range(len(device_1_id)):
-        device_1_connected.append(False)
+    """Initializes variables required for operation"""
+    for i in range(len(device_ids)):
+        devices_connected.append(False)
         data_saved.append(False)
     return
 
@@ -48,6 +64,7 @@ def storeData(device_id):
         return this_save_path
 
 def dataBackup(timestamp,device_id):
+    """Moves the data from the specified data directory to the specified backup directory in a new timestamped directory"""
     this_backup_path = backup_path +timestamp+'/'
     process = subprocess.Popen([platform_tools,'-s',device_id,'shell','mkdir',this_backup_path], stdout=subprocess.PIPE)
     process = subprocess.Popen([platform_tools,'-s',device_id,'shell','mv',data_path+'*', backup_path], stdout=subprocess.PIPE)
@@ -58,17 +75,17 @@ def dataBackup(timestamp,device_id):
 
 def pullData():
     """Checks if device is connected and if it is and has not been downloaded and takes appropriate action"""
-    global device_1_connected,data_saved
+    global devices_connected,data_saved
 
-    for i in range(len(device_1_id)):
+    for i in range(len(device_ids)):
         with subprocess.Popen([platform_tools,'devices'], stdout=subprocess.PIPE) as process:
             output = str(process.stdout.read())
         
-            if device_1_id[i] in output:
-                if (not device_1_connected[i]) or (data_saved[i] == False):
+            if device_ids[i] in output:
+                if (not devices_connected[i]) or (data_saved[i] == False):
                     print('Device Connected\nGathering Device Data...')
-                    datapath = storeData(device_1_id[i])
-                    device_1_connected[i] = True
+                    datapath = storeData(device_ids[i])
+                    devices_connected[i] = True
 
                     if datapath:
                         data_saved[i] = True
@@ -77,7 +94,7 @@ def pullData():
                         data_saved[i] = False
 
             else:
-                device_1_connected[i] = False
+                devices_connected[i] = False
                 data_saved[i] = False
             
             process.kill()
